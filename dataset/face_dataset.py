@@ -12,27 +12,23 @@ from utils.microsoft_align import get_inverse_mat
 
 imgPath = {'ffceleba': ['/media/xn/SSD1T/ffhq/img256_mic',
                         '/media/xn/SSD1T/CelebAMask-HQ/img256_mic'],
-           'illinois': ['/media/xn/SSD1T/illinois/front_img256_mic',
-                        '/media/xn/SSD1T/illinois/side_img256_mic']}
+           }
 
 coeffPath = {'ffceleba': ['/media/xn/SSD1T/ffhq/microsoft_coeff',
                           '/media/xn/SSD1T/CelebAMask-HQ/microsoft_coeff'],
-             'illinois': ['/media/xn/SSD1T/illinois/front_microsoft_coeff',
-                          '/media/xn/SSD1T/illinois/side_microsoft_coeff']}
+            }
 
 ldmkPath = {'ffceleba': ['/media/xn/SSD1T/ffhq/ldmk_256_mic',
                          '/media/xn/SSD1T/CelebAMask-HQ/ldmk_256_mic'],
-            'illinois': ['/media/xn/SSD1T/illinois/front_ldmk256_mic',
-                         '/media/xn/SSD1T/illinois/side_ldmk256_mic']}
+           }
 
 uvPath = {'ffceleba': ['/media/xn/SSD1T/ffhq/uv_merge',
                        '/media/xn/SSD1T/CelebAMask-HQ/uv_merge'],
-          'illinois': ['/media/xn/SSD1T/illinois/uv_merge',
-                       '/media/xn/SSD1T/illinois/uv_merge']}  # illinois has two same uv root
+          }
 
 maskPath = {'ffceleba': ['/media/xn/SSD1T/ffhq/mask256_mic_slim',
                          '/media/xn/SSD1T/CelebAMask-HQ/mask256_mic_slim'],
-            'illinois': ['/media/xn/SSD1T/illinois/front_mask256_mic_slim']}
+            }
 
 
 class BaseDataset(Data.Dataset, ABC):
@@ -120,35 +116,13 @@ class FFCelebA(BaseDataset):
         img, mask, uv, coeff, mat_inverse = self.get_data(id, name)
         return img, mask, uv, coeff, mat_inverse
 
-
-class Illinois(BaseDataset):
-    def __init__(self, mode='train'):
-        super().__init__('illinois', mode)
-
-    def get_image_list(self):
-        images = os.listdir(self.uv_root[0])
-        images = [im.split('.')[0] + '.jpg' for im in images]
-        pth = pathlib.Path(__file__).parent.parent.absolute()
-        pth = os.path.join(pth, 'dataset/illinois_glass.pkl')
-        with open(pth, 'rb') as f:
-            glasses = pickle.load(f)
-
-        return list(set(images) - set(glasses))
-
-    def __getitem__(self, idx):
-        name = self.image_list[idx]
-        img, mask, uv, coeff, mat_inverse = self.get_data(0, name)
-        return img, mask, uv, coeff, mat_inverse
-
-
+      
 class InputFetcher(object):
     def __init__(self, name='ffceleba', batch_size=8, device='cuda:0'):
         self.device = device
         self.name = name
         if name == 'ffceleba':
             dataset = FFCelebA()
-        elif name == 'illinois':
-            dataset = Illinois()
         else:
             raise ValueError('Dataset not implemented')
         self.dataset = dataset
