@@ -9,7 +9,7 @@ Weakly-Supervised Photo-realistic Texture Generation for 3D Face Reconstruction
 ## Poisson blending of the in-complete UV-map and the BFM based UV-map
 ![poisson](images/poisson.png)
 
-## reconstruction results
+## Reconstruction results
 ![results](images/results.png)
 
 
