@@ -14,7 +14,7 @@ class RandomAffine(object):
 
     def __call__(self, data):
         # data = {'img': img, 'uv': uv, 'mat_inv': mat_inverse, 'mask': mask}
-        img, uv, mat_inv, mask, seg = data['img'], data['uv'], data['mat_inv'], data['mask'], data['seg']
+        img, uv, mat_inv, mask = data['img'], data['uv'], data['mat_inv'], data['mask']
         h, w = img.shape[:2]
 
         # flip flag
@@ -45,7 +45,6 @@ class RandomAffine(object):
 
         image = cv2.warpAffine(img, M, (h, w))
         mask = cv2.warpAffine(mask, M, (h, w), flags=cv2.INTER_NEAREST)
-        seg = cv2.warpAffine(seg, M, (h, w), flags=cv2.INTER_NEAREST)
 
         M = np.array([
             [M[0, 0], M[0, 1], 0, M[0, 2]],
@@ -55,7 +54,7 @@ class RandomAffine(object):
         ])
         mat_inv = (M @ mat_inv).astype(np.float32)
 
-        data = {'img': image, 'uv': uv, 'mat_inv': mat_inv, 'mask': mask, 'seg': seg, 'flip': flip}
+        data = {'img': image, 'uv': uv, 'mat_inv': mat_inv, 'mask': mask, 'flip': flip}
         return data
 
 
