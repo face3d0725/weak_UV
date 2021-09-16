@@ -4,83 +4,12 @@ import torch.nn.functional as F
 
 
 @torch.no_grad()
-def seg_rgb2shape(seg_rgb, face_mask=None):
-    # get the ground truth of training, no need to require grad
-    # seg_rgb: Nx1xHxW or Nx13xHxW
-    seg_rgb = seg_rgb.squeeze(dim=1)
-    if seg_rgb.dim() == 4:
-        seg_rgb = seg_rgb.argmax(dim=1)  # NxHxW
-    assert seg_rgb.dim() == 3
-
-    if face_mask is not None:
-        face_mask = face_mask.squeeze(1)
-        seg_shape = torch.zeros_like(face_mask)  # background 0
-        seg_shape += face_mask  # skin 1
-        seg_shape[seg_rgb == 5] = 2  # l_eye 2
-        seg_shape[seg_rgb == 6] = 3  # r_eye 3
-        seg_shape[seg_rgb == 7] = 4  # nose 4
-        seg_shape[seg_rgb == 8] = 0  # mouth 0
-        seg_shape[seg_rgb == 9] = 6  # u_lip 6
-        seg_shape[seg_rgb == 10] = 7  # l_lip 7
-
-    else:
-        seg_shape = torch.zeros_like(seg_rgb)
-        seg_shape[seg_rgb == 1] = 1  # skin
-        seg_shape[seg_rgb == 11] = 1  # hair to skin
-        seg_shape[seg_rgb == 2] = 1  # l_brow to skin
-        seg_shape[seg_rgb == 3] = 1  # r_brow to skin
-        seg_shape[seg_rgb == 4] = 1  # eye_g to skin
-        seg_shape[seg_rgb == 5] = 2  # l_eye
-        seg_shape[seg_rgb == 6] = 3  # r_eye
-        seg_shape[seg_rgb == 7] = 4  # nose
-        seg_shape[seg_rgb == 8] = 0  # mouth
-        seg_shape[seg_rgb == 9] = 5  # u_lip
-        seg_shape[seg_rgb == 10] = 6  # l_lip
-
-    return seg_shape
-
-
-@torch.no_grad()
-def valid_seg_rgb(seg_rgb):
-    # seg_rgb: output of data fetcher, Bx1xHxW
-    # set border
-    seg_rgb[:, :, 0:2, :] = 0
-    seg_rgb[:, :, -2:, :] = 0
-    seg_rgb[:, :, :, 0:2] = 0
-    seg_rgb[:, :, :, -2:] = 0
-
-    # convert label
-    seg_rgb = seg_rgb.squeeze(dim=1)
-    seg_valid = torch.zeros_like(seg_rgb)
-    seg_valid[seg_rgb == 1] = 1  # skin
-    seg_valid[seg_rgb == 2] = 1  # l_brow to skin
-    seg_valid[seg_rgb == 3] = 1  # r_brow to skin
-    seg_valid[seg_rgb == 4] = 0  # eye_g to bg
-    seg_valid[seg_rgb == 5] = 2  # l_eye
-    seg_valid[seg_rgb == 6] = 3  # r_eye
-    seg_valid[seg_rgb == 7] = 4  # nose
-    seg_valid[seg_rgb == 8] = 0  # mouth
-    seg_valid[seg_rgb == 9] = 5  # u_lip
-    seg_valid[seg_rgb == 10] = 6  # u_lip
-    seg_valid[seg_rgb == 11] = 0  # hair to bg
-    return seg_valid
-
-
-@torch.no_grad()
 def label2onehot(label):
     onehot = torch.eye(7).to(label.device)
     return onehot[label].permute(0, 3, 1, 2)
 
 
-@torch.no_grad()
-def get_face_mask(label):
-    mask = (label > 0) * (label < 11) * (~(label == 4)) * (~(label == 8))  # when train sampler set comment label==8
-    mask = mask.type(torch.float32)
-    return mask
-
-
 def tensor_erode(bin_img, ksize=5):
-    # 首先加入 padding，防止腐蚀后图像尺寸缩小
     B, C, H, W = bin_img.shape
     pad = (ksize - 1) // 2
     bin_img = F.pad(bin_img, [pad, pad, pad, pad], mode='constant', value=0)
@@ -92,7 +21,6 @@ def tensor_erode(bin_img, ksize=5):
 
 
 def tensor_dilate(bin_img, ksize=5):
-    # 首先加入 padding，防止腐蚀后图像尺寸缩小
     B, C, H, W = bin_img.shape
     pad = (ksize - 1) // 2
     bin_img = F.pad(bin_img, [pad, pad, pad, pad], mode='constant', value=0)
