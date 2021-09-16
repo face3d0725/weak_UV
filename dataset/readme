@@ -1,2 +1,10 @@
 dataloader
 All the processed training data will be uploaded later
+
+dataset needed:
+
+ffhq: https://github.com/NVlabs/ffhq-dataset
+CelebAMask-HQ: https://github.com/switchablenorms/CelebAMask-HQ
+MIT-indoor: http://web.mit.edu/torralba/www/indoor.html
+
+And our processed dataset including uvmaps from poisson blending, face masks, partial UV maps.
