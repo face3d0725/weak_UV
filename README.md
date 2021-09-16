@@ -1,7 +1,9 @@
 # weak_UV
 Weakly-Supervised Photo-realistic Texture Generation for 3D Face Reconstruction
 
-![images](images/fig3.png)
+![work flow](images/fig3.png)
+
+![sampler](images/fig2.png)
 
 Required packages:
 
