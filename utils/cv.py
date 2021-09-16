@@ -1,4 +1,3 @@
-
 import torch
 import torch.nn.functional as F
 from torch import nn
@@ -82,7 +81,85 @@ def img2tensor(img):
     return img
 
 
+def ldmk2mask(ldmk, size=128):
+    ldmk = ldmk.astype('int64')
+    mask = np.ones((size, size), dtype='uint8')
+
+    # face = cv2.convexHull(np.vstack((ldmk[0:17],
+    #                                  ldmk[22:27][::-1],
+    #                                  ldmk[17:22][::-1])))
+    left_eye = cv2.convexHull(ldmk[36:42])
+    right_eye = cv2.convexHull(ldmk[42:48])
+    inner_mouth = ldmk[60:]
+    # cv2.fillPoly(mask, [face], 1)
+    cv2.fillPoly(mask, [left_eye, right_eye], 0)
+    cv2.fillPoly(mask, [inner_mouth], 0)
+
+    return mask
+
+
+def draw_ldmk(img, ldmk):
+    if type(img) is torch.Tensor:
+        img = tensor2img(img)
+    if type(ldmk) is torch.Tensor:
+        ldmk = ldmk.squeeze().numpy()
+
+    shape = img.shape
+    if img.shape[0] < 512:
+        scale = 512 // img.shape[0]
+        dsize = (shape[1] * scale, shape[0] * scale)
+        img = cv2.resize(img, dsize, interpolation=cv2.INTER_LINEAR)
+        ldmk = ldmk * scale
+
+    for idx in range(ldmk.shape[0]):
+        point = tuple(ldmk[idx].astype('int'))
+        cv2.circle(img, point, radius=1, color=(255, 0, 0), thickness=-1)
+        cv2.putText(img, '{}'.format(idx), point, cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 0, 0), 1)
+
+    return img
+
+
+def show_img(img, mode=0):
+    if mode == 0:
+        cv2.imshow('img', img)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+    else:
+        plt.figure()
+        plt.imshow(img)
+        plt.axis('off')
+        plt.show()
+
+
+def beauty_face(img):
+    v1 = 5  # 磨皮程度
+    v2 = 3  # 细节程度
+    dx = v1 * 5  # 双边滤波参数之一
+    fc = v1 * 12.5  # 双边滤波参数之一
+    p = 0.1
+    # 双边滤波
+    # temp1 = cv2.bilateralFilter(img, dx, fc, fc)
+    temp1 = cv2.GaussianBlur(img, (5, 5), 0)
+
+    temp2 = cv2.subtract(temp1, img);
+    temp2 = cv2.add(temp2, (10, 10, 10, 128))
+    # 高斯模糊
+    temp3 = cv2.GaussianBlur(temp2, (2 * v2 - 1, 2 * v2 - 1), 0)
+    temp4 = cv2.add(img, temp3)
+    dst = cv2.addWeighted(img, p, temp4, 1 - p, 0.0)
+    dst = cv2.add(dst, (10, 10, 10, 255))
+    return dst
 
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
+
+    I = cv2.imread('../weights/a.png')[:, :, ::-1]
+    J = beauty_face(I)
+
+    plt.figure()
+    plt.imshow(I)
+
+    plt.figure()
+    plt.imshow(J)
+    plt.show()
