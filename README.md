@@ -6,11 +6,13 @@ Weakly-Supervised Photo-realistic Texture Generation for 3D Face Reconstruction
 ## From image to in-complete UV-map
 ![sampler](images/fig2.png)
 
+## Poisson blending of the in-complete UV-map and the BFM based UV-map
+![poisson](images/poisson.png)
+
 ## reconstruction results
 ![results](images/results.png)
 
-## Poisson blending of the in-complete UV-map and the BFM based UV-map
-![poisson](images/poisson.png)
+
 ## Required packages:
 
 pytorch3d https://github.com/facebookresearch/pytorch3d
