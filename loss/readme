@@ -1,1 +1,4 @@
 loss functions
+
+You should first install facenet-pytorch package: 
+https://github.com/timesler/facenet-pytorch
