@@ -23,6 +23,7 @@ class UVMask(Data.Dataset):
     def __getitem__(self, idx):
         name = self.name_list[idx]
         mask = cv2.imread(os.path.join(self.root, name), 0)
+        mask = Image.fromarray(mask)
         mask = self.transform(mask)
         return mask
 
@@ -31,7 +32,7 @@ class BackGround(Data.Dataset):
     def __init__(self):
         self.root = background_root
         self.image_list = os.listdir(background_root)
-        self.transform = TF.ToTensor()
+        self.transform = TF.Compose([TF.RandomHorizontalFlip(), TF.ToTensor()])
         self.sz_img = 256
 
     def __len__(self):
@@ -120,7 +121,7 @@ class Fetcher(object):
 if __name__ == '__main__':
     from utils.cv import tensor2img
 
-    fetcher = Fetcher('uvside')
+    fetcher = Fetcher('bg')
     for idx in range(20):
         data = next(fetcher)
         data = tensor2img(data)
