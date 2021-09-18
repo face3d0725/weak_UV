@@ -222,7 +222,7 @@ class GenSolver(object):
 
         # train real
         with torch.no_grad():
-            grid, _ = self.sampler(img)
+            grid, _ = self.sampler(img_init)
             uv_map_sample = F.grid_sample(img, grid, mode='bilinear', padding_mode='zeros',
                                           align_corners=True)
             uv_map_sample = uv_map_sample + ((uv_map_sample == 0) * torch.flip(uv_map_sample, dims=(3,)))
