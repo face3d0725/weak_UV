@@ -1,10 +1,9 @@
-from abc import ABC, abstractmethod
 from torchvision import transforms as TF
 import torch.utils.data as Data
-from dataset.transform import RandomAffine
 import os
 import pickle
 import random
+from PIL import Image
 import numpy as np
 import cv2
 
@@ -16,7 +15,7 @@ class UVMask(Data.Dataset):
     def __init__(self):
         self.root = uvmask_root
         self.name_list = os.listdir(self.root)
-        self.transform = TF.ToTensor()
+        self.transform = TF.Compose([TF.RandomHorizontalFlip(), TF.ToTensor()])
 
     def __len__(self):
         return len(self.name_list)
@@ -48,6 +47,7 @@ class BackGround(Data.Dataset):
         x, y = random.randint(0, H - self.sz_img), random.randint(0, W - self.sz_img)
         img = img[x:x + self.sz_img, y:y + self.sz_img, :]
         img = cv2.GaussianBlur(img, (11, 11), 0)[:, :, ::-1].copy()
+        img = Image.fromarray(img)
         img = self.transform(img)
         return img
 
@@ -57,7 +57,7 @@ class UV(Data.Dataset):
         self.root = '/media/xn/SSD1T/ffhq/'
         self.side = side
         self.image_list = self.get_image_list()
-        self.transform = TF.ToTensor()
+        self.transform = TF.Compose([TF.RandomHorizontalFlip(), TF.ToTensor()])
 
     def get_image_list(self):
         if self.side == 'front':
@@ -78,7 +78,7 @@ class UV(Data.Dataset):
         pth = os.path.join(self.root, im_name)
         with open(pth, 'rb') as f:
             uv = pickle.load(f)
-
+        uv = Image.fromarray(uv)
         uv = self.transform(uv)
         return uv
 
