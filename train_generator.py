@@ -212,6 +212,12 @@ class GenSolver(object):
         opt_dis.zero_grad()
         loss_d.backward()
         opt_dis.step()
+        
+    def noise(self, uv_spl):
+        noise = torch.rand_like(uv_spl)
+        mask = uv_spl == torch.zeros(1,3,1,1).to(uv_spl.device)
+        uv_spl = uv_spl*(~mask)+noise*mask
+        return uv_spl
 
     def train(self, step):
         img_init, seg, uv, coeff, mat_inverse = next(self.datafetcher)
@@ -226,6 +232,7 @@ class GenSolver(object):
             uv_map_sample = F.grid_sample(img, grid, mode='bilinear', padding_mode='zeros',
                                           align_corners=True)
             uv_map_sample = uv_map_sample + ((uv_map_sample == 0) * torch.flip(uv_map_sample, dims=(3,)))
+            uv_map_sample = self.noise(uv_map_sample)
 
             if random.random() > 0.8:
                 uv_mask = next(self.uv_mask_fetcher)
