@@ -23,3 +23,5 @@ contiguous_params https://github.com/PhilJd/contiguous_pytorch_params
 
 
 
+# Pretrained model
+https://drive.google.com/drive/folders/1zr884l7D_W9E7yBKJW_r-1O5CfRoGxS_?usp=sharing 
