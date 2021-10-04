@@ -229,14 +229,17 @@ class GenSolver(object):
         # train real
         with torch.no_grad():
             grid, _ = self.sampler(img_init)
-            uv_map_sample = F.grid_sample(img, grid, mode='bilinear', padding_mode='zeros',
+            uv_map_sample = F.grid_sample(img, grid, mode='nearest', padding_mode='zeros',
                                           align_corners=True)
-            uv_map_sample = uv_map_sample + ((uv_map_sample == 0) * torch.flip(uv_map_sample, dims=(3,)))
-            uv_map_sample = self.noise(uv_map_sample)
-
-            if random.random() > 0.8:
+            
+            if random.random() > 0.3:
                 uv_mask = next(self.uv_mask_fetcher)
                 uv_map_sample = uv_map_sample * (1 - uv_mask)
+                
+            mask = uv_map_sample == torch.zeros(1, 3, 1, 1).to(uv_map_sample.device)
+            uv_spl_gray = torch.mean(uv_map_sample, dim=1, keepdim=True).repeat(1,3,1,1)
+            uv_map_sample = uv_map_sample + torch.flip(uv_spl_gray, (3,))*mask
+            uv_map_sample = self.noise(uv_map_sample)
 
         uv_map_pred = torch.clamp(self.gen(uv_map_sample), 0., 1.)
         verts_colors_pred = self.uv_reader(uv_map_pred, bilinear=True).permute(0, 2, 1).contiguous()
